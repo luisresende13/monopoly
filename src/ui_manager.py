@@ -76,7 +76,7 @@ class UIManager:
         self.ui_elements['roll_button'].set_position(HUD_X_START + 50, 700)
         
         self.ui_elements['manage_button'] = Sprite("assets/ui/button_manage.png")
-        self.ui_elements['manage_button'].set_position(HUD_X_START + 50, 760)
+        self.ui_elements['manage_button'].set_position(HUD_X_START + 50, 775)
 
         self.ui_elements['pay_fine_button'] = Sprite("assets/ui/button_generic.png") # Reusing generic button
         self.ui_elements['pay_fine_button'].set_position(HUD_X_START + 50, 640)
@@ -279,7 +279,7 @@ class UIManager:
                 current_line += " " + word
         lines.append(current_line)
         
-        y_pos = card_box.y + 40
+        y_pos = card_box.y + 100
         for line in lines:
             line_x = card_box.x + (card_box.width - len(line.strip()) * 8) / 2
             self.window.draw_text(line.strip(), line_x, y_pos, size=18, color=(0,0,0))
