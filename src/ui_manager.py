@@ -65,6 +65,7 @@ class UIManager:
         self.ui_elements: Dict[str, Sprite] = {}
         self.dialog_buttons: List[Sprite] = []
         self.token_animator: Optional[TokenAnimator] = None
+        self.card_to_display: Optional[Card] = None
 
         self._load_ui_elements()
 
@@ -137,6 +138,9 @@ class UIManager:
 
         elif state == "MANAGE_PROPERTIES":
             self.draw_manage_properties_screen(game_manager)
+
+        if self.card_to_display:
+            self.display_card(self.card_to_display)
 
     def draw_board(self):
         """Draws the main game board."""
@@ -245,6 +249,7 @@ class UIManager:
 
     def display_card(self, card: Card):
         """Shows the text of a drawn Chance or Community Chest card."""
+        self.card_to_display = card
         card_box = self.ui_elements['card_dialog']
         card_box.draw()
         
@@ -271,7 +276,8 @@ class UIManager:
         ok_button.set_position(card_box.x + (card_box.width - ok_button.width) / 2, card_box.y + card_box.height - 70)
         ok_button.draw()
         self.window.draw_text("OK", ok_button.x + 65, ok_button.y + 15, size=20, color=(0,0,0))
-        ok_button.action = "DISMISS"
+        ok_button.action = "DISMISS_CARD"
+        ok_button.card = card # Associate the card with the button
         self.dialog_buttons = [ok_button]
 
     def get_player_input(self, game_manager: GameManager) -> Optional[Dict]:
@@ -305,6 +311,13 @@ class UIManager:
                         return {'type': 'PAY_TAX', 'choice': 'flat'}
                     elif "PAY 10%" in button.action:
                         return {'type': 'PAY_TAX', 'choice': 'percentage'}
+        
+        elif state == "SHOWING_CARD":
+            for button in self.dialog_buttons:
+                if self.mouse.is_over_object(button):
+                    if button.action == "DISMISS_CARD":
+                        self.card_to_display = None
+                        return {'type': 'DISMISS_CARD', 'card': button.card}
         
         # Add checks for other states with dialogs (e.g., card dismissal)
         

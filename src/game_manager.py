@@ -29,6 +29,7 @@ STATE_JAIL_TURN = "JAIL_TURN"
 STATE_AWAITING_BUY_DECISION = "AWAITING_BUY_DECISION"
 STATE_AUCTION = "AUCTION"
 STATE_AWAITING_TAX_CHOICE = "AWAITING_TAX_CHOICE"
+STATE_SHOWING_CARD = "SHOWING_CARD"
 STATE_MANAGE_PROPERTIES = "MANAGE_PROPERTIES" # New state for building/mortgaging
 
 
@@ -123,6 +124,8 @@ class GameManager:
                 self.process_tax(self.current_player, self.board.get_space_at(self.current_player.position), action['choice'])
             elif action_type == 'MANAGE_PROPERTIES':
                 self.game_state = STATE_MANAGE_PROPERTIES
+            elif self.game_state == STATE_SHOWING_CARD and action_type == 'DISMISS_CARD':
+                self.handle_card_action(action['card'])
             elif self.game_state == STATE_MANAGE_PROPERTIES:
                 if action_type == 'BACK_TO_GAME':
                     self.game_state = STATE_AWAITING_ROLL
@@ -219,6 +222,13 @@ class GameManager:
         if self.dice.is_doubles():
             print("Rolled doubles! You are out of jail.")
             player.get_out_of_jail()
+            
+            # Start the movement animation
+            old_position = player.position
+            steps = self.dice.get_total()
+            new_position = (old_position + steps) % constants.BOARD_SIZE
+            self.ui_manager.start_token_animation(player, old_position, new_position)
+            
             self.game_state = STATE_PLAYER_MOVING
         else:
             player.jail_turns_remaining -= 1
@@ -227,6 +237,13 @@ class GameManager:
                 if not self.check_for_bankruptcy(player, self.bank, constants.JAIL_FINE):
                     player.remove_money(constants.JAIL_FINE)
                     player.get_out_of_jail()
+
+                    # The player now moves the amount of their last roll
+                    old_position = player.position
+                    steps = self.dice.get_total()
+                    new_position = (old_position + steps) % constants.BOARD_SIZE
+                    self.ui_manager.start_token_animation(player, old_position, new_position)
+
                     self.game_state = STATE_PLAYER_MOVING
             else:
                 print("Failed to roll doubles. Turn ends.")
@@ -523,6 +540,17 @@ class GameManager:
         deck = self.chance_deck if deck_type == 'Chance' else self.community_chest_deck
         card = deck.draw_card()
         print(f"{player.name} drew a {deck_type} card: \"{card.text}\"")
+        
+        # Transition to showing the card and let the UI handle it
+        self.ui_manager.display_card(card)
+        self.game_state = STATE_SHOWING_CARD
+
+    def handle_card_action(self, card: Card):
+        """Processes the action of a card after it has been displayed and dismissed."""
+        player = self.current_player
+        deck_type = 'Chance' if card in self.chance_deck.cards or card in self.chance_deck.discards else 'Community Chest'
+        deck = self.chance_deck if deck_type == 'Chance' else self.community_chest_deck
+
         action_type, data = card.action_type, card.action_data
         if action_type == 'MOVE_TO_SPACE':
             old_position = player.position
@@ -541,7 +569,7 @@ class GameManager:
         elif action_type == 'PAY_BANK':
             if not self.check_for_bankruptcy(player, self.bank, data['amount']):
                 player.remove_money(data['amount'])
-                self.game_state = STATE_END_OF_TURN
+            self.game_state = STATE_END_OF_TURN
         elif action_type == 'ADD_GET_OUT_OF_JAIL_FREE_CARD':
             player.add_get_out_of_jail_card(deck_type)
             deck.discards.append(card) # Keep track of it to return later
@@ -550,6 +578,7 @@ class GameManager:
         else:
             print(f"Card action '{action_type}' not fully implemented yet.")
             self.game_state = STATE_END_OF_TURN
+        
         deck.return_card_to_bottom(card)
     def process_go_to_jail(self, player: Player):
         print(f"{player.name} is going to Jail!")
