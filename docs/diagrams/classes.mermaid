@@ -1,0 +1,137 @@
+classDiagram
+    direction TD
+
+    class GerenciadorJogo {
+        +Tabuleiro tabuleiro
+        +Banco banco
+        +Dado dado
+        +BaralhoDeCartas baralho_sorte
+        +BaralhoDeCartas baralho_cofre
+        +List~Jogador~ jogadores
+        +Jogador jogador_atual
+        +string estado_jogo
+        +iniciar_jogo()
+        +proximo_turno()
+        +atualizar(acao)
+        +processar_aluguel(pagador, propriedade)
+        +processar_compra(jogador, propriedade)
+        +verificar_falencia(devedor, credor, quantia)
+    }
+
+    class Jogador {
+        +string nome
+        +int dinheiro
+        +List~Propriedade~ propriedades
+        +int posicao
+        +bool esta_preso
+        +List~string~ cartas_saida_prisao
+        +adicionar_dinheiro(quantia)
+        +remover_dinheiro(quantia)
+        +obter_patrimonio_total()
+        +ir_para_prisao()
+        +sair_da_prisao()
+    }
+
+    class Tabuleiro {
+        +List~Espaco~ espacos
+        +obter_espaco_em(indice)
+    }
+
+    class Banco {
+        +int casas
+        +int hoteis
+        +vender_casa(jogador, propriedade)
+        +vender_hotel(jogador, propriedade)
+        +recomprar_casa(jogador, propriedade)
+        +pagar_salario_partida(jogador)
+    }
+
+    class Dado {
+        +Tuple~int,int~ ultimo_lancamento
+        +rolar() Tuple~int,int~
+        +obter_total() int
+        +eh_dupla() bool
+    }
+
+    class BaralhoDeCartas {
+        +List~Carta~ cartas
+        +List~Carta~ descartes
+        +embaralhar()
+        +puxar_carta() Carta
+        +retornar_carta_ao_fundo(carta)
+    }
+
+    class Carta {
+        +string texto
+        +string tipo_acao
+        +Dict dados_acao
+    }
+
+    class Espaco {
+        <<Abstract>>
+        +string nome
+        +int indice
+    }
+
+    class Propriedade {
+        <<Abstract>>
+        +int preco
+        +int valor_hipoteca
+        +Jogador proprietario
+        +bool esta_hipotecada
+        +calcular_aluguel() int
+    }
+
+    class Rua {
+        +string grupo_cor
+        +List~int~ niveis_aluguel
+        +int custo_casa
+        +int num_casas
+    }
+
+    class Ferrovia {
+        +int aluguel_base
+    }
+
+    class Utilidade {
+        +calcular_aluguel(rolagem_dados) int
+    }
+
+    class EspacoCarta {
+        +string tipo_baralho
+    }
+
+    class EspacoImposto {
+        +int valor_imposto
+    }
+
+    class EspacoCanto {
+        +string tipo_canto
+    }
+
+    %% Inheritance
+    Espaco <|-- Propriedade
+    Espaco <|-- EspacoCarta
+    Espaco <|-- EspacoImposto
+    Espaco <|-- EspacoCanto
+    Propriedade <|-- Rua
+    Propriedade <|-- Ferrovia
+    Propriedade <|-- Utilidade
+
+    %% Relationships
+    GerenciadorJogo "1" *-- "2..8" Jogador : gerencia
+    GerenciadorJogo "1" *-- "1" Tabuleiro : possui
+    GerenciadorJogo "1" *-- "1" Banco : possui
+    GerenciadorJogo "1" *-- "1" Dado : possui
+    GerenciadorJogo "1" *-- "2" BaralhoDeCartas : possui
+
+    Tabuleiro "1" *-- "40" Espaco : contém
+
+    BaralhoDeCartas "1" *-- "1..*" Carta : contém
+
+    Jogador "1" o-- "0..*" Propriedade : possui
+
+    GerenciadorJogo ..> Espaco : interage com
+    GerenciadorJogo ..> Carta : executa ação da
+    Banco ..> Jogador : transaciona com
+    Banco ..> Rua : negocia construções na
