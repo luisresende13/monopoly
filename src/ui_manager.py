@@ -12,6 +12,7 @@ from pplay.window import Window
 from pplay.mouse import Mouse
 from pplay.sprite import Sprite
 from pplay.gameimage import GameImage
+from utils import resource_path
 
 # Type hinting for game logic objects
 from typing import List, Dict, Optional, Tuple
@@ -60,7 +61,7 @@ class UIManager:
         self.keyboard = Window.get_keyboard()
 
         # Load assets
-        self.board_sprite = GameImage("assets/board.png")
+        self.board_sprite = GameImage(resource_path("assets/board.png"))
         self.token_sprites: Dict[Player, Sprite] = {}
         self.ui_elements: Dict[str, Sprite] = {}
         self.dialog_buttons: List[Sprite] = []
@@ -72,21 +73,21 @@ class UIManager:
     def _load_ui_elements(self):
         """Loads static UI elements like buttons and dialog boxes."""
         # Main action buttons
-        self.ui_elements['roll_button'] = Sprite("assets/ui/button_roll.png")
+        self.ui_elements['roll_button'] = Sprite(resource_path("assets/ui/button_roll.png"))
         self.ui_elements['roll_button'].set_position(HUD_X_START + 50, 700)
         
-        self.ui_elements['manage_button'] = Sprite("assets/ui/button_manage.png")
+        self.ui_elements['manage_button'] = Sprite(resource_path("assets/ui/button_manage.png"))
         self.ui_elements['manage_button'].set_position(HUD_X_START + 50, 775)
 
-        self.ui_elements['pay_fine_button'] = Sprite("assets/ui/button_generic.png") # Reusing generic button
+        self.ui_elements['pay_fine_button'] = Sprite(resource_path("assets/ui/button_generic.png")) # Reusing generic button
         self.ui_elements['pay_fine_button'].set_position(HUD_X_START + 50, 640)
 
         # Dialog assets
-        self.ui_elements['dialog_box'] = Sprite("assets/ui/dialog_box.png")
+        self.ui_elements['dialog_box'] = Sprite(resource_path("assets/ui/dialog_box.png"))
         self.ui_elements['dialog_box'].set_position(self.window.width / 2 - self.ui_elements['dialog_box'].width / 2,
                                                     self.window.height / 2 - self.ui_elements['dialog_box'].height / 2)
         
-        self.ui_elements['card_dialog'] = Sprite("assets/ui/card_dialog.png")
+        self.ui_elements['card_dialog'] = Sprite(resource_path("assets/ui/card_dialog.png"))
         self.ui_elements['card_dialog'].set_position(self.window.width / 2 - self.ui_elements['card_dialog'].width / 2,
                                                      self.window.height / 2 - self.ui_elements['card_dialog'].height / 2)
 
@@ -94,7 +95,7 @@ class UIManager:
         """Creates a token sprite for each player."""
         for i, player in enumerate(players):
             token_file = TOKEN_FILES[i % len(TOKEN_FILES)]
-            sprite = Sprite(f"assets/tokens/{token_file}")
+            sprite = Sprite(resource_path(f"assets/tokens/{token_file}"))
             self.token_sprites[player] = sprite
             player.token_sprite = sprite # Link sprite back to player model
 
@@ -249,7 +250,7 @@ class UIManager:
         
         for option in options:
             # Assuming generic button asset, text will be drawn on top
-            button = Sprite("assets/ui/button_generic.png")
+            button = Sprite(resource_path("assets/ui/button_generic.png"))
             button.set_position(start_x, dialog_box.y + 150)
             button.draw()
             
@@ -286,7 +287,7 @@ class UIManager:
             y_pos += 25
             
         # OK button
-        ok_button = Sprite("assets/ui/button_generic.png")
+        ok_button = Sprite(resource_path("assets/ui/button_generic.png"))
         ok_button.set_position(card_box.x + (card_box.width - ok_button.width) / 2, card_box.y + card_box.height - 70)
         ok_button.draw()
         self.window.draw_text("OK", ok_button.x + 65, ok_button.y + 15, size=20, color=(0,0,0))
@@ -374,7 +375,7 @@ class UIManager:
             # Add buttons for actions
             x_pos = 400
             if isinstance(prop, Street):
-                build_button = Sprite("assets/ui/button_generic.png")
+                build_button = Sprite(resource_path("assets/ui/button_generic.png"))
                 build_button.set_position(x_pos, y_pos)
                 build_button.draw()
                 self.window.draw_text("Build", build_button.x + 50, build_button.y + 15, size=24, color=(0, 0, 0))
@@ -383,7 +384,7 @@ class UIManager:
                 self.dialog_buttons.append(build_button)
                 x_pos += 200
 
-            mortgage_button = Sprite("assets/ui/button_generic.png")
+            mortgage_button = Sprite(resource_path("assets/ui/button_generic.png"))
             mortgage_button.set_position(x_pos, y_pos)
             mortgage_button.draw()
             self.window.draw_text("Mortgage", mortgage_button.x + 30, mortgage_button.y + 15, size=24, color=(0, 0, 0))
@@ -394,7 +395,7 @@ class UIManager:
             y_pos += 60
 
         # Back button
-        back_button = Sprite("assets/ui/button_generic.png")
+        back_button = Sprite(resource_path("assets/ui/button_generic.png"))
         back_button.set_position(self.window.width / 2 - back_button.width / 2, self.window.height - 100)
         back_button.draw()
         self.window.draw_text("Back", back_button.x + 50, back_button.y + 15, size=24, color=(0, 0, 0))
