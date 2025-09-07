@@ -78,6 +78,9 @@ class UIManager:
         self.ui_elements['manage_button'] = Sprite("assets/ui/button_manage.png")
         self.ui_elements['manage_button'].set_position(HUD_X_START + 50, 760)
 
+        self.ui_elements['pay_fine_button'] = Sprite("assets/ui/button_generic.png") # Reusing generic button
+        self.ui_elements['pay_fine_button'].set_position(HUD_X_START + 50, 640)
+
         # Dialog assets
         self.ui_elements['dialog_box'] = Sprite("assets/ui/dialog_box.png")
         self.ui_elements['dialog_box'].set_position(self.window.width / 2 - self.ui_elements['dialog_box'].width / 2,
@@ -112,8 +115,19 @@ class UIManager:
                 if self.token_animator.is_finished:
                     game_manager.finish_player_movement(self.token_animator.card_move, self.token_animator.new_position)
                     self.token_animator = None
-        elif state == "AWAITING_ROLL" or state == "JAIL_TURN":
+        elif state == "AWAITING_ROLL":
             self.ui_elements['roll_button'].draw()
+            self.ui_elements['manage_button'].draw()
+        
+        elif state == "JAIL_TURN":
+            self.ui_elements['roll_button'].draw()
+            
+            # Draw Pay Fine button if player can afford it
+            if game_manager.current_player.money >= 50:
+                pay_fine_button = self.ui_elements['pay_fine_button']
+                pay_fine_button.draw()
+                self.window.draw_text("Pay $50 Fine", pay_fine_button.x + 20, pay_fine_button.y + 15, size=20, color=(0,0,0))
+
             self.ui_elements['manage_button'].draw()
         
         elif state == "AWAITING_BUY_DECISION":
@@ -290,11 +304,19 @@ class UIManager:
 
         state = game_manager.game_state
 
-        if state == "AWAITING_ROLL" or state == "JAIL_TURN":
+        if state == "AWAITING_ROLL":
             if self.mouse.is_over_object(self.ui_elements['roll_button']):
                 return {'type': 'ROLL_DICE'}
             if self.mouse.is_over_object(self.ui_elements['manage_button']):
                 return {'type': 'MANAGE_PROPERTIES'}
+        
+        elif state == "JAIL_TURN":
+            if self.mouse.is_over_object(self.ui_elements['roll_button']):
+                return {'type': 'ROLL_DICE'}
+            if self.mouse.is_over_object(self.ui_elements['manage_button']):
+                return {'type': 'MANAGE_PROPERTIES'}
+            if self.mouse.is_over_object(self.ui_elements['pay_fine_button']) and game_manager.current_player.money >= 50:
+                return {'type': 'PAY_FINE'}
 
         elif state == "AWAITING_BUY_DECISION":
             for button in self.dialog_buttons:

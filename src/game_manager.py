@@ -55,23 +55,44 @@ class GameManager:
     # --- Core Game Flow Methods (from previous steps, with minor updates) ---
 
     def start_game(self):
+        """
+        Determines the starting player by having players roll the dice.
+        Handles ties by making only the tied players re-roll until a single
+        winner is determined.
+        """
         print("Determining starting player...")
-        highest_roll = -1
-        starters = []
-        while len(starters) != 1:
+        
+        # The indices of players who need to roll. Starts with everyone.
+        players_to_roll_indices = list(range(len(self.players)))
+
+        while True:
             rolls = {}
-            players_to_roll = self.players if not starters else [self.players[i] for i in starters]
-            for i, player in enumerate(players_to_roll):
-                roll = self.dice.roll()
+            for player_index in players_to_roll_indices:
+                player = self.players[player_index]
+                self.dice.roll()
                 total = self.dice.get_total()
-                rolls[i] = total
-                print(f"{player.name} rolled a {total} {roll}")
+                rolls[player_index] = total
+                print(f"{player.name} rolled a {total} {self.dice.last_roll}")
                 time.sleep(0.1)
+
+            if not rolls:
+                print("Error: No players left to roll. Cannot determine starter.")
+                # Fallback: start with player 0 if something goes wrong
+                self.current_player_index = 0
+                break
+
             highest_roll = max(rolls.values())
-            starters = [i for i, total in rolls.items() if total == highest_roll]
-            if len(starters) > 1:
-                print(f"Tie for the highest roll ({highest_roll}). Tied players will re-roll.")
-        self.current_player_index = starters[0]
+            starters = [index for index, total in rolls.items() if total == highest_roll]
+
+            if len(starters) == 1:
+                # We have a single winner
+                self.current_player_index = starters[0]
+                break
+            
+            # If we are here, there was a tie. Only tied players roll next.
+            players_to_roll_indices = starters
+            print(f"Tie for the highest roll ({highest_roll}). Tied players will re-roll.")
+        
         self.current_player = self.players[self.current_player_index]
         self.game_state = STATE_AWAITING_ROLL
         print(f"\n{self.current_player.name} wins the roll and will start the game!")
@@ -109,6 +130,10 @@ class GameManager:
                     self.handle_roll()
                 else: # STATE_JAIL_TURN
                     self.handle_jail_turn()
+            elif self.game_state == STATE_JAIL_TURN and action_type == 'PAY_FINE':
+                self.process_pay_jail_fine()
+            elif self.game_state == STATE_JAIL_TURN and action_type == 'MANAGE_PROPERTIES':
+                self.game_state = STATE_MANAGE_PROPERTIES
             elif self.game_state == STATE_AWAITING_BUY_DECISION:
                 space = self.board.get_space_at(self.current_player.position)
                 if action_type == 'BUY_PROPERTY':
@@ -128,7 +153,11 @@ class GameManager:
                 self.handle_card_action(action['card'])
             elif self.game_state == STATE_MANAGE_PROPERTIES:
                 if action_type == 'BACK_TO_GAME':
-                    self.game_state = STATE_AWAITING_ROLL
+                    # If returning from management, go back to the correct state
+                    if self.current_player.in_jail:
+                        self.game_state = STATE_JAIL_TURN
+                    else:
+                        self.game_state = STATE_AWAITING_ROLL
                 elif action_type == 'BUILD':
                     self.process_building_request(self.current_player, action['property'])
                 elif action_type == 'MORTGAGE':
@@ -248,6 +277,21 @@ class GameManager:
             else:
                 print("Failed to roll doubles. Turn ends.")
                 self.game_state = STATE_END_OF_TURN
+
+    def process_pay_jail_fine(self):
+        """Handles the player's choice to pay the jail fine to get out early."""
+        player = self.current_player
+        # The UI should prevent this if the player can't afford it, but we double-check.
+        if player.money >= constants.JAIL_FINE:
+            print(f"{player.name} pays ${constants.JAIL_FINE} to get out of jail.")
+            # check_for_bankruptcy will return False if they can pay.
+            if not self.check_for_bankruptcy(player, self.bank, constants.JAIL_FINE):
+                player.remove_money(constants.JAIL_FINE)
+                player.get_out_of_jail()
+                self.game_state = STATE_AWAITING_ROLL # Player is out and can now roll
+        else:
+            # This case should be prevented by the UI, but is here as a safeguard.
+            print(f"Error: {player.name} cannot afford the ${constants.JAIL_FINE} fine.")
 
     # --- Player Action Methods (from previous steps, updated for bankruptcy) ---
 

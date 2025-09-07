@@ -16,6 +16,7 @@ This step focuses on small but important corrections to the existing game logic 
         *   [x] Handle ties in the initial dice roll by having the tied players re-roll.
         *   [x] While in Jail, a player can perform all normal actions (collect rent, build, trade, etc.).
         *   [x] Player has the option to pay a $50 fine on their turn to get out.
+*   **Status: Completed**
 
 ### **Step 2: Implement Advanced Card Actions**
 

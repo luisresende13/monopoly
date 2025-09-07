@@ -13,7 +13,7 @@ This document outlines all the features required for a complete and faithful imp
 - [x] Create 2-8 players, each with a unique token.
 - [x] Distribute the correct starting money ($1,500) to each player.
 - [x] Determine the starting player by having each player roll the dice; the highest roll goes first.
-- [ ] Handle ties in the initial dice roll by having the tied players re-roll.
+- [x] Handle ties in the initial dice roll by having the tied players re-roll.
 
 ### **2. Core Gameplay Loop**
 
@@ -73,11 +73,11 @@ This document outlines all the features required for a complete and faithful imp
 ### **4. Jail Rules**
 
 - [x] A player is sent to Jail for rolling three consecutive doubles, landing on "Go To Jail", or drawing a "Go To Jail" card.
-- [ ] While in Jail, a player can perform all normal actions (collect rent, build, trade, etc.). (Current implementation does not allow this).
+- [x] While in Jail, a player can perform all normal actions (collect rent, build, trade, etc.). (Current implementation does not allow this).
 - [x] **Getting Out of Jail:**
     - [x] Use a "Get Out of Jail Free" card.
     - [x] Attempt to roll doubles on one of their next three turns. If successful, they move immediately.
-    - [ ] Player has the option to pay a $50 fine on their turn to get out. (Currently, payment is only forced after 3 failed rolls).
+    - [x] Player has the option to pay a $50 fine on their turn to get out. (Currently, payment is only forced after 3 failed rolls).
     - [x] If a player fails to roll doubles after three turns, they must pay the $50 fine and then move according to their roll.
 
 ### **5. Buildings (Houses & Hotels)**
